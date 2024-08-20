@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "Orquest to Google Calendar",
+  "version": "1.0",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.orquest.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
+
+// content.js
+const shifts = [];
+document.querySelectorAll('.shift-class').forEach(shiftElement => {
+    const shift = {
+        date: shiftElement.querySelector('.date').innerText,
+        startTime: shiftElement.querySelector('.start-time').innerText,
+        endTime: shiftElement.querySelector('.end-time').innerText,
+    };
+    shifts.push(shift);
+});
+
+chrome.storage.local.set({ shifts: shifts });
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Estilos básicos */
+    </style>
+</head>
+<body>
+    <h1>Orquest Shifts</h1>
+    <div id="shifts"></div>
+    <button id="sync">Sync with Google Calendar</button>
+    <script src="popup.js"></script>
+</body>
+</html>
+
+document.addEventListener('DOMContentLoaded', () => {
+    chrome.storage.local.get('shifts', data => {
+        const shiftsDiv = document.getElementById('shifts');
+        data.shifts.forEach(shift => {
+            const shiftElement = document.createElement('div');
+            shiftElement.innerText = `${shift.date} - ${shift.startTime} to ${shift.endTime}`;
+            shiftsDiv.appendChild(shiftElement);
+        });
+    });
+
+    document.getElementById('sync').addEventListener('click', () => {
+        // Aquí llamarías a la API de Google Calendar
+    });
+});
